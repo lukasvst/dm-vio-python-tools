@@ -1,0 +1,105 @@
+example_config:
+  short_name: example
+  dmvio_folder: /path/to/dmvio
+  # this uses the same cmake command as CLion which avoids recompilation.
+  cmake_command: /path/to/clion/bin/cmake/linux/bin/cmake -G "CodeBlocks - Unix Makefiles"
+  pc_config_path: /path/to/file/describing/pc_configuration.txt # File which will be saved together with results.
+  pc_config_command: apt list # This is appended to the file describing the PC configuration.
+  rsync_command: rsync -rav -e "ssh -p YOUR_SSH_PORT" # Command to copy all results to central storage after running.
+  # Location of central storage for results.
+  rsync_command_target: user@your.central.machine:/folder/to/save/results/on/central/machine
+  slurm: false # Can be set to true for running on Slurm servers.
+  results_path: /path/where/results/are/stored # Your results will be stored (and read from) here.
+  euroc: # Paths to the individual datasets.
+    dataset_path: /path/to/euroc/dataset
+    results_path: /path/where/results/are/stored
+  tumvi:
+    dataset_path: /path/to/tumvi/dataset
+    results_path: /path/where/results/are/stored
+  4seasons:
+    dataset_path: /path/to/4seasons/dataset
+    results_path: /path/where/results/are/stored
+  4seasonsCR:
+    dataset_path: /path/to/4seasons/dataset
+    results_path: /path/where/results/are/stored
+config_general: # This is where configuration shared for all machines is stored (mainly dataset-specifics).
+  euroc: # With start times as used by DSO and VI-DSO.
+    afterpath: mav0/cam0/
+    afterpath2: mav0/cam1/
+    res_prefix: mav_
+    dataset_args: files=./data calib=./camera.txt mode=1
+    default_iter: 10
+    folder_names: [MH_01_easy, MH_02_easy, MH_03_medium, MH_04_difficult, MH_05_difficult,
+      V1_01_easy, V1_02_medium, V1_03_difficult, V2_01_easy, V2_02_medium, V2_03_difficult]
+    # We use the start times proposed in the DSO paper, which were also taken over in VI-DSO.
+    # When starting from the beginning, the method works also well, but then the setting
+    # --dmvio_args="init_ba_skipFirstKFs=1 init_requestFullResetNormalizedErrorThreshold=0.8" should be used, which
+    # improves the robustness of the method to bad visual initialization.
+    start_times: [950, 800, 410, 445, 460, 22, 115, 250, 26, 100, 115]
+    end_times: [3600, 3000, 2600, 1925, 2200, 2800, 1600, 2020, 2130, 2230, 1880]
+  tumvi:
+    afterpath: dso/cam0/
+    afterpath2: dso/cam1/
+    res_prefix: tumvi_
+    dataset_args: files=./images calib=${DMVIO_PATH}/configs/tumvi_calib/camera02.txt
+      gamma=${DMVIO_PATH}/configs/tumvi_calib/pcalib.txt vignette=vignette.png imuFile=../imu.txt
+      gtFile=../gt_imu.csv imuCalib=${DMVIO_PATH}/configs/tumvi_calib/camchain.yaml
+      mode=0 use16Bit=1
+    default_iter: 5
+    folder_names: [dataset-corridor1_512_16, dataset-corridor2_512_16, dataset-corridor3_512_16,
+      dataset-corridor4_512_16, dataset-corridor5_512_16, dataset-magistrale1_512_16,
+      dataset-magistrale2_512_16, dataset-magistrale3_512_16, dataset-magistrale4_512_16,
+      dataset-magistrale5_512_16, dataset-magistrale6_512_16, dataset-outdoors1_512_16,
+      dataset-outdoors2_512_16, dataset-outdoors3_512_16, dataset-outdoors4_512_16,
+      dataset-outdoors5_512_16, dataset-outdoors6_512_16, dataset-outdoors7_512_16,
+      dataset-outdoors8_512_16, dataset-room1_512_16, dataset-room2_512_16, dataset-room3_512_16,
+      dataset-room4_512_16, dataset-room5_512_16, dataset-room6_512_16, dataset-slides1_512_16,
+      dataset-slides2_512_16, dataset-slides3_512_16]
+    # We always skip the first two frames in case the IMU data starts later than the images. This is just for convenience
+    # (eliminates one possible source of error) and should not really make a difference.
+    start_times: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+      2, 2, 2, 2, 2, 2]
+  4seasons:
+    afterpath: undistorted_images
+    afterpath2: ''
+    res_prefix: 4seasons_
+    dataset_args: files=./cam0 calib=${DMVIO_PATH}/configs/4seasons_calib/undistorted_calib304.txt
+      imuFile=../imu_interp.txt imuCalib=${DMVIO_PATH}/configs/4seasons_calib/camchain.yaml
+      gtFile=../GNSSPoses_IMU.txt mode=1
+    default_iter: 5
+    folder_names: [office_2021-01-07_12-04-03, office_2021-02-25_13-51-57, office_2020-03-24_17-36-22,
+      office_2020-03-24_17-45-31, office_2020-04-07_10-20-32, office_2020-06-12_10-10-57,
+      neighbor_2020-10-07_14-47-51, neighbor_2020-10-07_14-53-52, neighbor_2020-12-22_11-54-24,
+      neighbor_2021-02-25_13-25-15, neighbor_2020-03-26_13-32-55, neighbor_2021-05-10_18-02-12,
+      neighbor_2021-05-10_18-32-32, business_2021-01-07_13-12-23, business_2021-02-25_14-16-43,
+      business_2020-10-08_09-30-57, country_2020-10-08_09-57-28, country_2021-01-07_13-30-07,
+      country_2020-04-07_11-33-45, country_2020-06-12_11-26-43, city_2020-12-22_11-33-15,
+      city_2021-01-07_14-36-17, city_2021-02-25_11-09-49, oldtown_2020-10-08_11-53-41,
+      oldtown_2021-01-07_10-49-45, oldtown_2021-02-25_12-34-08, oldtown_2021-05-10_21-32-00,
+      parking_2020-12-22_12-04-35, parking_2021-02-25_13-39-06, parking_2021-05-10_19-15-19]
+    start_times: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+      2, 2, 2, 2, 2, 2, 2, 2]
+  4seasonsCR: # 4 seasons with pre-cropped images.
+    afterpath: cropped_images
+    afterpath2: ''
+    res_prefix: 4seasons_
+    dataset_args: files=./cam0 calib=${DMVIO_PATH}/configs/4seasons_calib/cropped_calib304.txt
+      imuFile=../imu_interp.txt imuCalib=${DMVIO_PATH}/configs/4seasons_calib/camchain.yaml
+      gtFile=../GNSSPoses_IMU.txt mode=1
+    default_iter: 5
+    folder_names: [office_2021-01-07_12-04-03, office_2021-02-25_13-51-57, office_2020-03-24_17-36-22,
+      office_2020-03-24_17-45-31, office_2020-04-07_10-20-32, office_2020-06-12_10-10-57,
+      neighbor_2020-10-07_14-47-51, neighbor_2020-10-07_14-53-52, neighbor_2020-12-22_11-54-24,
+      neighbor_2021-02-25_13-25-15, neighbor_2020-03-26_13-32-55, neighbor_2021-05-10_18-02-12,
+      neighbor_2021-05-10_18-32-32, business_2021-01-07_13-12-23, business_2021-02-25_14-16-43,
+      business_2020-10-08_09-30-57, country_2020-10-08_09-57-28, country_2021-01-07_13-30-07,
+      country_2020-04-07_11-33-45, country_2020-06-12_11-26-43, city_2020-12-22_11-33-15,
+      city_2021-01-07_14-36-17, city_2021-02-25_11-09-49, oldtown_2020-10-08_11-53-41,
+      oldtown_2021-01-07_10-49-45, oldtown_2021-02-25_12-34-08, oldtown_2021-05-10_21-32-00,
+      parking_2020-12-22_12-04-35, parking_2021-02-25_13-39-06, parking_2021-05-10_19-15-19]
+    start_times: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+      2, 2, 2, 2, 2, 2, 2, 2]
+macbook: # here for the short_name
+  short_name: mac
+homepc1804: # here for the short_name
+  short_name: home
