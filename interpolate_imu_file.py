@@ -30,10 +30,27 @@ import argparse
 import numpy as np
 
 
+def offset_times(array, offset):
+    for line in array:
+        line[0] = str(int(line[0]) + offset)
+
+
 def interpolate_imu_file(imu_input_filename, times_input_filename, imu_output_filename):
     """Inserts interpolated IMU measurements at all timestamps of images."""
-    imu_data = np.loadtxt(imu_input_filename)
-    times_data = np.loadtxt(times_input_filename)
+    with open(imu_input_filename) as imu_input_file:
+        imu_lines = imu_input_file.readlines()
+        imu_lines = [line.rstrip('\n').split(' ') for line in imu_lines]
+        imu_time0 = int(imu_lines[0][0])
+        # We want to use np.interp but it cannot handle the long timestamps. So we subtract the timestamp of the first
+        # imu data from all timestamps and will add them back later.
+        offset_times(imu_lines, -imu_time0)
+        imu_data = np.array(imu_lines, dtype=float)
+
+    with open(times_input_filename) as times_input_file:
+        times_lines = times_input_file.readlines()
+        times_lines = [line.rstrip('\n').split(' ') for line in times_lines]
+        offset_times(times_lines, -imu_time0)
+        times_data = np.array(times_lines, dtype=float)
 
     image_times = times_data[:, 0]
     imu_times = imu_data[:, 0]
@@ -48,7 +65,13 @@ def interpolate_imu_file(imu_input_filename, times_input_filename, imu_output_fi
     interpolated = [np.interp(all_times, imu_times, imu_data[:, i + 1]) for i in range(6)]
     interpolated.insert(0, all_times)
     interpolated_stacked = np.stack(interpolated).transpose()
-    np.savetxt(imu_output_filename, interpolated_stacked, fmt=['%1i'] + 6 * ['%1f'])
+
+    with open(imu_output_filename, 'w') as out_file:
+        outlist = interpolated_stacked.tolist()
+        offset_times(outlist, imu_time0)  # add back the offset.
+        outlines = [(' '.join([elem if type(elem) is str else '{:f}'.format(elem) for elem in line]) + '\n') for line in
+                    outlist]
+        out_file.writelines(outlines)
 
 
 if __name__ == '__main__':
