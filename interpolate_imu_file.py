@@ -39,7 +39,7 @@ def interpolate_imu_file(imu_input_filename, times_input_filename, imu_output_fi
     """Inserts interpolated IMU measurements at all timestamps of images."""
     with open(imu_input_filename) as imu_input_file:
         imu_lines = imu_input_file.readlines()
-        imu_lines = [line.rstrip('\n').split(' ') for line in imu_lines]
+        imu_lines = [line.rstrip('\n').split(' ') for line in imu_lines if not line.startswith("#")]
         imu_time0 = int(imu_lines[0][0])
         # We want to use np.interp but it cannot handle the long timestamps. So we subtract the timestamp of the first
         # imu data from all timestamps and will add them back later.
@@ -48,7 +48,7 @@ def interpolate_imu_file(imu_input_filename, times_input_filename, imu_output_fi
 
     with open(times_input_filename) as times_input_file:
         times_lines = times_input_file.readlines()
-        times_lines = [line.rstrip('\n').split(' ') for line in times_lines]
+        times_lines = [line.rstrip('\n').split(' ') for line in times_lines if not line.startswith("#")]
         offset_times(times_lines, -imu_time0)
         times_data = np.array(times_lines, dtype=float)
 
